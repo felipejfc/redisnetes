@@ -1,0 +1,33 @@
+{
+  "name": "redisnetes-controller",
+  "version": "0.1.0",
+  "description": "The controller for redisnetes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felipejfc/redisnetes.git"
+  },
+  "author": "Felipe Cavalcanti <fjfcavalcanti@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/felipejfc/redisnetes/issues"
+  },
+  "homepage": "https://github.com/felipejfc/redisnetes#readme",
+  "dependencies": {
+    "k8s": "^0.4.6",
+    "koa": "^1.2.2",
+    "koa-logger": "^1.3.0",
+    "koa-router": "^5.4.0",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.4.0",
+    "eslint-config-airbnb": "^10.0.1",
+    "eslint-plugin-import": "^1.14.0",
+    "eslint-plugin-jsx-a11y": "^2.2.1",
+    "eslint-plugin-react": "^6.2.0"
+  }
+}
