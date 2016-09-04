@@ -24,3 +24,6 @@ Redis cloud on [Kubernetes](https://github.com/kubernetes/kubernetes)
 * Route to redis intances using a port-based approach
 * Make it HA
 * Reload on new redis instance creation / removal
+
+### Database
+* Postgres backing-up to S3, see [wal-e](https://github.com/wal-e/wal-e)

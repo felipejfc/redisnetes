@@ -32,6 +32,7 @@ if (process.env.NODE_ENV === 'development') {
 api.use(router.routes())
 
 router
+  .get('/redis/instances', controllers.RedisController.get)
   .get('/healthcheck', controllers.OthersController.healthcheck)
   .get('/:other', controllers.OthersController.other)
 

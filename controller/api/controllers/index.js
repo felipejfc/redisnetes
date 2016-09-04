@@ -21,7 +21,9 @@
  */
 
 const OthersController = require('./others.js')
+const RedisController = require('./redis.js')
 
 module.exports = {
   OthersController,
+  RedisController,
 }

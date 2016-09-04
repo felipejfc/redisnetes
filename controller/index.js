@@ -24,6 +24,12 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 process.env.NODE_PORT = process.env.NODE_PORT || 5000
 process.env.LOG_LEVEL = process.env.LOG_LEVEL ||
   (process.env.NODE_ENV === 'development' ? 'debug' : 'info')
+process.env.K8S_NAMESPACE = process.env.K8S_NAMESPACE || 'redisletes'
+process.env.K8S_API_ADDRESS = process.env.K8S_API_ADDRESS || 'localhost:8080'
+process.env.K8S_API_USERNAME = process.env.K8S_API_USERNAME || 'admin'
+process.env.K8S_API_PASSWORD = process.env.K8S_API_PASSWORD || 'password'
+process.env.K8S_API_USEAUTH = process.env.K8S_API_USEAUTH || true
+process.env.K8S_API_VERSION = process.env.K8S_API_VERSION || '/api/v1'
 
 const logger = require('./api/lib/logger')()
 const api = require('./api')

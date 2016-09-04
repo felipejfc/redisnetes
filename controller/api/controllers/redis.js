@@ -20,15 +20,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const K8s = require('k8s')
+
+const kubeapi = K8s.api({
+  endpoint: process.env.K8S_API_ADDRESS,
+  namespace: process.env.K8S_NAMESPACE,
+  version: process.env.K8S_API_VERSION,
+  auth: process.env.K8S_API_USEAUTH ? {
+    username: process.env.K8S_API_USERNAME,
+    password: process.env.K8S_API_PASSWORD,
+  } : null,
+})
+
 module.exports = {
-  * healthcheck(next) {
-    this.body = 'OK'
-    this.status = 200
+
+  * post(next) {
     yield next
   },
 
-  * other(next) {
-    this.status = 404
+  * get(next) {
+    const replicasets = yield kubeapi.get(`namespaces/${process.env.K8S_NAMESPACE}/replicasets`)
+    this.body = replicasets
     yield next
   },
+
 }
