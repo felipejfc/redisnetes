@@ -18,28 +18,10 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-setup:
-	@npm install
+version: '2'
 
-run:
-	@npm start
-
-start-deps: start-deps-containers db db-migrate
-
-start-deps-containers:
-	@docker-compose --project-name redisnetes up -d
-	@echo "Sleeping until dependencies are up..."
-	@bash -lc "until docker exec redisnetes_postgres_1 pg_isready; do echo 'Waiting for Postgres...' && sleep 1; done"
-	@sleep 5
-
-db:
-	@echo "Creating new database..."
-	@-docker exec redisnetes_postgres_1 createdb -U postgres redisnetes
-	@-docker exec redisnetes_postgres_1 psql -U postgres -d redisnetes -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'
-
-db-migrate:
-	@./scripts/migrate_db.sh
-
-stop-deps:
-	@docker-compose --project-name redisnetes stop
-	@docker rm redisnetes_postgres_1
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - "4321:5432"

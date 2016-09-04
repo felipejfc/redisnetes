@@ -20,34 +20,23 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const models = require('../models')
-const k8s = require('../../k8s')
-const logger = require('winston')
+const K8s = require('k8s')
 
-const scheduler = k8s.scheduler
-const instance = models.Instance
+const kubeapi = K8s.api({
+  endpoint: process.env.K8S_API_ADDRESS,
+  namespace: process.env.K8S_NAMESPACE,
+  version: process.env.K8S_API_VERSION,
+  auth: process.env.K8S_API_USEAUTH ? {
+    username: process.env.K8S_API_USERNAME,
+    password: process.env.K8S_API_PASSWORD,
+  } : null,
+})
+
+const replicationcontroller = require('./resources/replicationcontroller.js')(kubeapi)
+const scheduler = require('./scheduler')(replicationcontroller)
 
 module.exports = {
-  * createInstance(next) {
-    try {
-      const body = this.request.body
-      const name = body.name
-      const redisVersion = body.redisVersion
-      logger.debug(`creating instance with name ${name} and redisVersion ${redisVersion}`)
-      const rs = yield scheduler.deployInstance(name, redisVersion, next)
-      this.body = rs
-      yield next
-    } catch (e) {
-      logger.error(e)
-      this.status = 500
-      this.body = e.message
-      yield next
-    }
-  },
-
-  * getInstances(next) {
-    const replicasets = yield instance.findAll()
-    this.body = replicasets
-    yield next
-  },
+  scheduler,
+  api: kubeapi,
+  replicationcontroller,
 }

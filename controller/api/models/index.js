@@ -20,34 +20,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const models = require('../models')
-const k8s = require('../../k8s')
+const Sequelize = require('sequelize')
 const logger = require('winston')
 
-const scheduler = k8s.scheduler
-const instance = models.Instance
+const sequelize = new Sequelize(process.env.PG_URL, {
+  dialect: 'postgres',
+  protocol: 'postgres',
+  pool: {
+    max: process.env.PG_MAX_CONNECTIONS,
+    min: process.env.PG_MIN_CONNECTIONS,
+    idle: process.env.PG_IDLE,
+  },
+  logging: (process.env.PG_LOGGING === 'true') ? logger.info : false,
+})
+
+const Instance = require('./instance.js')(sequelize)
+
+if (process.env.NODE_ENV === 'development') {
+  Instance.sync().then(() => {
+    logger.warn('Instances table synced!')
+  })
+}
 
 module.exports = {
-  * createInstance(next) {
-    try {
-      const body = this.request.body
-      const name = body.name
-      const redisVersion = body.redisVersion
-      logger.debug(`creating instance with name ${name} and redisVersion ${redisVersion}`)
-      const rs = yield scheduler.deployInstance(name, redisVersion, next)
-      this.body = rs
-      yield next
-    } catch (e) {
-      logger.error(e)
-      this.status = 500
-      this.body = e.message
-      yield next
-    }
-  },
-
-  * getInstances(next) {
-    const replicasets = yield instance.findAll()
-    this.body = replicasets
-    yield next
-  },
+  sequelize,
+  Instance,
 }

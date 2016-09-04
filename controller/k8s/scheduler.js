@@ -20,34 +20,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const models = require('../models')
-const k8s = require('../../k8s')
 const logger = require('winston')
 
-const scheduler = k8s.scheduler
-const instance = models.Instance
-
-module.exports = {
-  * createInstance(next) {
-    try {
-      const body = this.request.body
-      const name = body.name
-      const redisVersion = body.redisVersion
-      logger.debug(`creating instance with name ${name} and redisVersion ${redisVersion}`)
-      const rs = yield scheduler.deployInstance(name, redisVersion, next)
-      this.body = rs
-      yield next
-    } catch (e) {
-      logger.error(e)
-      this.status = 500
-      this.body = e.message
-      yield next
-    }
-  },
-
-  * getInstances(next) {
-    const replicasets = yield instance.findAll()
-    this.body = replicasets
-    yield next
-  },
+module.exports = function (replicationcontroller) {
+  return {
+    * deployInstance(name, redisVersion) {
+      const rc = yield replicationcontroller.create(name, redisVersion)
+      logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
+      // TODO: create a svc for new rc
+      // TODO: maybe test patch router svc
+      return rc
+    },
+  }
 }

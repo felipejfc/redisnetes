@@ -20,34 +20,53 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const models = require('../models')
-const k8s = require('../../k8s')
-const logger = require('winston')
-
-const scheduler = k8s.scheduler
-const instance = models.Instance
-
-module.exports = {
-  * createInstance(next) {
-    try {
-      const body = this.request.body
-      const name = body.name
-      const redisVersion = body.redisVersion
-      logger.debug(`creating instance with name ${name} and redisVersion ${redisVersion}`)
-      const rs = yield scheduler.deployInstance(name, redisVersion, next)
-      this.body = rs
-      yield next
-    } catch (e) {
-      logger.error(e)
-      this.status = 500
-      this.body = e.message
-      yield next
-    }
+const template = {
+  apiVersion: 'v1',
+  kind: 'ReplicationController',
+  metadata: {
+    name: '',
+    namespace: '',
   },
-
-  * getInstances(next) {
-    const replicasets = yield instance.findAll()
-    this.body = replicasets
-    yield next
+  spec: {
+    replicas: 1,
+    selector: {
+      app: '',
+    },
+    template: {
+      metadata: {
+        name: '',
+        labels: {
+          api: '',
+        },
+      },
+      spec: {
+        containers: [{
+          name: 'redis',
+          image: 'redis:latest',
+          ports: [
+            { containerPort: 6379 },
+          ],
+        }],
+      },
+    },
   },
+}
+
+module.exports = function (kubeapi) {
+  return {
+    * create(name, redisVersion) {
+      const redisRS = template
+      const rsName = `redis-${name}`
+      redisRS.metadata.name = rsName
+      redisRS.metadata.namespace = process.env.K8S_NAMESPACE
+      redisRS.spec.selector.app = rsName
+      redisRS.spec.template.metadata.name = rsName
+      redisRS.spec.template.metadata.labels.app = rsName
+      redisRS.spec.template.spec.containers.image = `redis:${redisVersion}`
+      const rc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
+        '/replicationcontrollers',
+        redisRS)
+      return rc
+    },
+  }
 }

@@ -23,16 +23,19 @@
 const api = require('koa')()
 const router = require('koa-router')()
 const koaLogger = require('koa-logger')
+const bodyParser = require('koa-bodyparser')
 const controllers = require('./controllers')
 
 if (process.env.NODE_ENV === 'development') {
   api.use(koaLogger())
 }
 
+api.use(bodyParser())
 api.use(router.routes())
 
 router
-  .get('/redis/instances', controllers.RedisController.get)
+  .get('/redis/instances', controllers.RedisController.getInstances)
+  .post('/redis/instances', controllers.RedisController.createInstance)
   .get('/healthcheck', controllers.OthersController.healthcheck)
   .get('/:other', controllers.OthersController.other)
 
