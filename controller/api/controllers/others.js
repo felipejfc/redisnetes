@@ -22,6 +22,7 @@
 
 module.exports = {
   * healthcheck(next) {
+    // TODO check pg and k8s api reachability
     this.body = 'OK'
     this.status = 200
     yield next

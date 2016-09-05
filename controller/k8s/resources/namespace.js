@@ -35,14 +35,12 @@ const template = {
 
 module.exports = function (kubeapi) {
   return {
-    * create(name) {
+    create(name) {
       const nsTemplate = template
       nsTemplate.metadata.name = name
       nsTemplate.metadata.labels.name = name
       logger.debug(`creating namespace with manifest ${JSON.stringify(nsTemplate)}`)
-      const ns = yield kubeapi.post('namespaces',
-        nsTemplate)
-      return ns
+      return kubeapi.post('namespaces', nsTemplate)
     },
   }
 }
