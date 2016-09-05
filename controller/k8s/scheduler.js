@@ -30,11 +30,13 @@ module.exports = function (replicationcontroller, service) {
       logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
       const svc = yield service.create(name)
       logger.debug(`create service result ${JSON.stringify(svc)}`)
-      yield redisInstance.create({
+      const dbInstance = yield redisInstance.create({
         name,
         redisVersion,
-        replicationController: `redis-${name}`,
+        replicationControllerManifest: rc,
+        serviceManifest: svc,
       })
+      logger.debug(`redis instance metadata persisted into db ${JSON.stringify(dbInstance)}`)
       return { rc, svc }
     },
   }

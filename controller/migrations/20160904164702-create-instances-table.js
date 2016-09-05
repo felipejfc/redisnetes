@@ -32,15 +32,21 @@ module.exports = {
         name: {
           type: Sequelize.STRING,
           allowNull: false,
+          unique: true,
         },
         redisVersion: {
           type: Sequelize.STRING,
           field: 'redis_version',
           allowNull: false,
         },
-        replicationController: {
-          type: Sequelize.STRING,
-          field: 'replicationcontroller',
+        replicationControllerManifest: {
+          type: Sequelize.JSONB,
+          field: 'rc_manifest',
+          allowNull: false,
+        },
+        serviceManifest: {
+          type: Sequelize.JSONB,
+          field: 'svc_manifest',
           allowNull: false,
         },
         createdAt: {
