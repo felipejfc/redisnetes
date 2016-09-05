@@ -21,6 +21,7 @@
  */
 
 const K8s = require('k8s')
+const logger = require('winston')
 
 const kubeapi = K8s.api({
   endpoint: process.env.K8S_API_ADDRESS,
@@ -35,9 +36,17 @@ const kubeapi = K8s.api({
 const replicationcontroller = require('./resources/replicationcontroller')(kubeapi)
 const service = require('./resources/service')(kubeapi)
 const scheduler = require('./scheduler')(replicationcontroller, service)
+const namespace = require('./resources/namespace')(kubeapi)
 
+try {
+  namespace.create(process.env.K8S_NAMESPACE).next()
+} catch (e) {
+  logger.warn(`error creating namespace ${e.message}`)
+}
 module.exports = {
   scheduler,
   api: kubeapi,
   replicationcontroller,
+  namespace,
+  service,
 }

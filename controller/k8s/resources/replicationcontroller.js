@@ -20,6 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const logger = require('winston')
+
 const template = {
   apiVersion: 'v1',
   kind: 'ReplicationController',
@@ -54,17 +56,18 @@ const template = {
 module.exports = function (kubeapi) {
   return {
     * create(name, redisVersion) {
-      const redisRC = template
+      const rcTemplate = template
       const rcName = `redis-${name}`
-      redisRC.metadata.name = rcName
-      redisRC.metadata.namespace = process.env.K8S_NAMESPACE
-      redisRC.spec.selector.app = rcName
-      redisRC.spec.template.metadata.name = rcName
-      redisRC.spec.template.metadata.labels.app = rcName
-      redisRC.spec.template.spec.containers.image = `redis:${redisVersion}`
+      rcTemplate.metadata.name = rcName
+      rcTemplate.metadata.namespace = process.env.K8S_NAMESPACE
+      rcTemplate.spec.selector.app = rcName
+      rcTemplate.spec.template.metadata.name = rcName
+      rcTemplate.spec.template.metadata.labels.app = rcName
+      rcTemplate.spec.template.spec.containers[0].image = `redis:${redisVersion}`
+      logger.debug(`creating rc with manifest ${JSON.stringify(rcTemplate)}`)
       const rc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
         '/replicationcontrollers',
-        redisRC)
+        rcTemplate)
       return rc
     },
   }

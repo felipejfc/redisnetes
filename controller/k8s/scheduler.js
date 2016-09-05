@@ -37,6 +37,7 @@ module.exports = function (replicationcontroller, service) {
         serviceManifest: svc,
       })
       logger.debug(`redis instance metadata persisted into db ${JSON.stringify(dbInstance)}`)
+      // TODO detectar erros assincronos na criacao do rc
       return { rc, svc }
     },
   }

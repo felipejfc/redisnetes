@@ -24,21 +24,11 @@ const logger = require('winston')
 
 const template = {
   apiVersion: 'v1',
-  kind: 'Service',
+  kind: 'Namespace',
   metadata: {
     name: '',
-    namespace: '',
     labels: {
       name: '',
-    },
-  },
-  spec: {
-    ports: [{
-      port: 6379,
-      targetPort: 6379,
-    }],
-    selector: {
-      app: '',
     },
   },
 }
@@ -46,17 +36,13 @@ const template = {
 module.exports = function (kubeapi) {
   return {
     * create(name) {
-      const svcTemplate = template
-      const svcName = `redis-${name}`
-      svcTemplate.metadata.name = svcName
-      svcTemplate.metadata.namespace = process.env.K8S_NAMESPACE
-      svcTemplate.metadata.labels.name = svcName
-      svcTemplate.spec.selector.app = svcName
-      logger.debug(`creating svc with manifest ${JSON.stringify(svcTemplate)}`)
-      const svc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
-        '/services',
-        svcTemplate)
-      return svc
+      const nsTemplate = template
+      nsTemplate.metadata.name = name
+      nsTemplate.metadata.labels.name = name
+      logger.debug(`creating namespace with manifest ${JSON.stringify(nsTemplate)}`)
+      const ns = yield kubeapi.post('namespaces',
+        nsTemplate)
+      return ns
     },
   }
 }
