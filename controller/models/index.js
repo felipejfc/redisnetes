@@ -20,22 +20,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const Sequelize = require('sequelize')
 const logger = require('winston')
-const redisInstance = require('../models/').RedisInstance
 
-module.exports = function (replicationcontroller, service) {
-  return {
-    * deployInstance(name, redisVersion) {
-      const rc = yield replicationcontroller.create(name, redisVersion)
-      logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
-      const svc = yield service.create(name)
-      logger.debug(`create service result ${JSON.stringify(svc)}`)
-      yield redisInstance.create({
-        name,
-        redisVersion,
-        replicationController: `redis-${name}`,
-      })
-      return { rc, svc }
-    },
-  }
+const sequelize = new Sequelize(process.env.PG_URL, {
+  dialect: 'postgres',
+  protocol: 'postgres',
+  pool: {
+    max: process.env.PG_MAX_CONNECTIONS,
+    min: process.env.PG_MIN_CONNECTIONS,
+    idle: process.env.PG_IDLE,
+  },
+  logging: (process.env.PG_LOGGING === 'true') ? logger.info : false,
+})
+
+const RedisInstance = require('./redisInstance')(sequelize)
+
+if (process.env.NODE_ENV === 'development') {
+  RedisInstance.sync().then(() => {
+    logger.warn('Instances table synced!')
+  })
+}
+
+module.exports = {
+  sequelize,
+  RedisInstance,
 }

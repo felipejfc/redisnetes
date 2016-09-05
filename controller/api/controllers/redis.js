@@ -20,12 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const models = require('../models')
+const models = require('../../models')
 const k8s = require('../../k8s')
 const logger = require('winston')
 
 const scheduler = k8s.scheduler
-const instance = models.Instance
+const redisInstance = models.RedisInstance
 
 module.exports = {
   * createInstance(next) {
@@ -38,6 +38,7 @@ module.exports = {
       this.body = rs
       yield next
     } catch (e) {
+      // TODO rollback creation of everything
       logger.error(e)
       this.status = 500
       this.body = e.message
@@ -46,8 +47,8 @@ module.exports = {
   },
 
   * getInstances(next) {
-    const replicasets = yield instance.findAll()
-    this.body = replicasets
+    const redisInstances = yield redisInstance.findAll()
+    this.body = redisInstances
     yield next
   },
 }

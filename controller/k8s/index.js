@@ -32,8 +32,9 @@ const kubeapi = K8s.api({
   } : null,
 })
 
-const replicationcontroller = require('./resources/replicationcontroller.js')(kubeapi)
-const scheduler = require('./scheduler')(replicationcontroller)
+const replicationcontroller = require('./resources/replicationcontroller')(kubeapi)
+const service = require('./resources/service')(kubeapi)
+const scheduler = require('./scheduler')(replicationcontroller, service)
 
 module.exports = {
   scheduler,

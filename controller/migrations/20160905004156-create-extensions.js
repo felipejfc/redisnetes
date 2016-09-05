@@ -20,26 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const Sequelize = require('sequelize')
+module.exports = {
+  up(queryInterface) {
+    queryInterface.sequelize.query(
+      'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'
+    )
+  },
 
-module.exports = function (sequelize) {
-  return sequelize.define('instances', {
-    id: {
-      type: Sequelize.UUID,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4,
-    },
-    name: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    redisVersion: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    replicaSet: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-  })
+  down() {},
 }

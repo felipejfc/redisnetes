@@ -20,29 +20,40 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const Sequelize = require('sequelize')
-const logger = require('winston')
-
-const sequelize = new Sequelize(process.env.PG_URL, {
-  dialect: 'postgres',
-  protocol: 'postgres',
-  pool: {
-    max: process.env.PG_MAX_CONNECTIONS,
-    min: process.env.PG_MIN_CONNECTIONS,
-    idle: process.env.PG_IDLE,
+const template = {
+  apiVersion: 'v1',
+  kind: 'Service',
+  metadata: {
+    name: '',
+    namespace: '',
+    labels: {
+      name: '',
+    },
   },
-  logging: (process.env.PG_LOGGING === 'true') ? logger.info : false,
-})
-
-const Instance = require('./instance.js')(sequelize)
-
-if (process.env.NODE_ENV === 'development') {
-  Instance.sync().then(() => {
-    logger.warn('Instances table synced!')
-  })
+  spec: {
+    ports: [{
+      port: 6379,
+      targetPort: 6379,
+    }],
+    selector: {
+      app: '',
+    },
+  },
 }
 
-module.exports = {
-  sequelize,
-  Instance,
+module.exports = function (kubeapi) {
+  return {
+    * create(name) {
+      const redisSvc = template
+      const svcName = `redis-${name}`
+      redisSvc.metadata.name = svcName
+      redisSvc.metadata.namespace = process.env.K8S_NAMESPACE
+      redisSvc.metadata.labels.name = svcName
+      redisSvc.spec.selector.app = svcName
+      const svc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
+        '/services',
+        redisSvc)
+      return svc
+    },
+  }
 }

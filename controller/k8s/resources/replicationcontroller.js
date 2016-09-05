@@ -36,7 +36,6 @@ const template = {
       metadata: {
         name: '',
         labels: {
-          api: '',
         },
       },
       spec: {
@@ -55,17 +54,17 @@ const template = {
 module.exports = function (kubeapi) {
   return {
     * create(name, redisVersion) {
-      const redisRS = template
-      const rsName = `redis-${name}`
-      redisRS.metadata.name = rsName
-      redisRS.metadata.namespace = process.env.K8S_NAMESPACE
-      redisRS.spec.selector.app = rsName
-      redisRS.spec.template.metadata.name = rsName
-      redisRS.spec.template.metadata.labels.app = rsName
-      redisRS.spec.template.spec.containers.image = `redis:${redisVersion}`
+      const redisRC = template
+      const rcName = `redis-${name}`
+      redisRC.metadata.name = rcName
+      redisRC.metadata.namespace = process.env.K8S_NAMESPACE
+      redisRC.spec.selector.app = rcName
+      redisRC.spec.template.metadata.name = rcName
+      redisRC.spec.template.metadata.labels.app = rcName
+      redisRC.spec.template.spec.containers.image = `redis:${redisVersion}`
       const rc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
         '/replicationcontrollers',
-        redisRS)
+        redisRC)
       return rc
     },
   }

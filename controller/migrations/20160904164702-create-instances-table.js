@@ -22,7 +22,7 @@
 
 module.exports = {
   up(queryInterface, Sequelize) {
-    return queryInterface.createTable('instances',
+    return queryInterface.createTable('redis_instances',
       {
         id: {
           type: Sequelize.UUID,
@@ -35,20 +35,24 @@ module.exports = {
         },
         redisVersion: {
           type: Sequelize.STRING,
+          field: 'redis_version',
           allowNull: false,
         },
-        replicaSet: {
+        replicationController: {
           type: Sequelize.STRING,
+          field: 'replicationcontroller',
           allowNull: false,
         },
         createdAt: {
           type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
+          field: 'created_at',
+          defaultValue: Sequelize.fn('now'),
           allowNull: false,
         },
         updatedAt: {
           type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
+          defaultValue: Sequelize.fn('now'),
+          field: 'updated_at',
           allowNull: false,
         },
       }
@@ -56,6 +60,6 @@ module.exports = {
   },
 
   down(queryInterface) {
-    return queryInterface.dropTable('instances')
+    return queryInterface.dropTable('redis_instances')
   },
 }

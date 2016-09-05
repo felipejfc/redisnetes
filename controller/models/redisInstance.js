@@ -20,22 +20,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const logger = require('winston')
-const redisInstance = require('../models/').RedisInstance
+const Sequelize = require('sequelize')
 
-module.exports = function (replicationcontroller, service) {
-  return {
-    * deployInstance(name, redisVersion) {
-      const rc = yield replicationcontroller.create(name, redisVersion)
-      logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
-      const svc = yield service.create(name)
-      logger.debug(`create service result ${JSON.stringify(svc)}`)
-      yield redisInstance.create({
-        name,
-        redisVersion,
-        replicationController: `redis-${name}`,
-      })
-      return { rc, svc }
+module.exports = function (sequelize) {
+  return sequelize.define('redis_instances', {
+    id: {
+      type: Sequelize.UUID,
+      primaryKey: true,
+      defaultValue: Sequelize.UUIDV4,
     },
-  }
+    name: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    redisVersion: {
+      type: Sequelize.STRING,
+      field: 'redis_version',
+      allowNull: false,
+    },
+    replicationController: {
+      type: Sequelize.STRING,
+      field: 'replicationcontroller',
+      allowNull: false,
+    },
+  }, {
+    timestamps: true,
+    underscored: true,
+  })
 }
