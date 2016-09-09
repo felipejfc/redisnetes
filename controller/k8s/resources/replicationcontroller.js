@@ -21,6 +21,8 @@
  */
 
 const logger = require('winston')
+const util = require('../../utils/util')
+const constants = require('../../utils/constants')
 
 const template = {
   apiVersion: 'v1',
@@ -55,7 +57,7 @@ const template = {
 
 module.exports = function (kubeapi) {
   return {
-    * create(name, redisVersion) {
+    create(name, redisVersion) {
       const rcTemplate = template
       const rcName = `redis-${name}`
       rcTemplate.metadata.name = rcName
@@ -63,12 +65,33 @@ module.exports = function (kubeapi) {
       rcTemplate.spec.selector.app = rcName
       rcTemplate.spec.template.metadata.name = rcName
       rcTemplate.spec.template.metadata.labels.app = rcName
+      rcTemplate.spec.template.metadata.labels.redisnetesInstance = rcName
       rcTemplate.spec.template.spec.containers[0].image = `redis:${redisVersion}`
       logger.debug(`creating rc with manifest ${JSON.stringify(rcTemplate)}`)
-      const rc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
+      return kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
         '/replicationcontrollers',
         rcTemplate)
-      return rc
+    },
+
+    * watch(name) {
+      const timeout = constants.RC_GENERATION_TIMEOUT
+      for (let i = 0; i < timeout; i++) {
+        try {
+          const rc = yield kubeapi.get(`namespaces/${process.env.K8S_NAMESPACE}/` +
+            `/replicationcontrollers/redis-${name}`)
+          if (rc.status.observedGeneration &&
+            rc.status.observedGeneration >= rc.metadata.generation) {
+            logger.debug(`rc redis-${name} is ready`)
+            return
+          }
+          yield util.sleep(1 * 1000)
+        } catch (e) {
+          if (e.indexOf('404') > -1) {
+            yield util.sleep(1 * 1000)
+          }
+        }
+      }
+      throw (new Error('timeout waiting for redis replicationcontroller to be ready'))
     },
   }
 }

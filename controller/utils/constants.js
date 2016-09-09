@@ -20,26 +20,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const logger = require('winston')
-const redisInstance = require('../models/').RedisInstance
-
-module.exports = function (replicationcontroller, service) {
-  return {
-    * deployInstance(name, redisVersion) {
-      const rc = yield replicationcontroller.create(name, redisVersion)
-      logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
-      yield replicationcontroller.watch(name)
-      const svc = yield service.create(name)
-      logger.debug(`create service result ${JSON.stringify(svc)}`)
-      const dbInstance = yield redisInstance.create({
-        name,
-        redisVersion,
-        replicationControllerManifest: rc,
-        serviceManifest: svc,
-      })
-      logger.debug(`redis instance metadata persisted into db ${JSON.stringify(dbInstance)}`)
-      // TODO detectar erros assincronos na criacao do rc
-      return { rc, svc }
-    },
-  }
+module.exports = {
+  RC_GENERATION_TIMEOUT: 3,
 }

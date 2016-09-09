@@ -40,7 +40,7 @@ module.exports = {
     } catch (e) {
       // TODO rollback creation of everything
       logger.error(e)
-      this.status = 500
+      this.status = e.code || 500
       this.body = e.message
       yield next
     }

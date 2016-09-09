@@ -40,12 +40,13 @@ const template = {
     selector: {
       app: '',
     },
+    type: 'NodePort',
   },
 }
 
 module.exports = function (kubeapi) {
   return {
-    * create(name) {
+    create(name) {
       const svcTemplate = template
       const svcName = `redis-${name}`
       svcTemplate.metadata.name = svcName
@@ -53,10 +54,9 @@ module.exports = function (kubeapi) {
       svcTemplate.metadata.labels.name = svcName
       svcTemplate.spec.selector.app = svcName
       logger.debug(`creating svc with manifest ${JSON.stringify(svcTemplate)}`)
-      const svc = yield kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
+      return kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
         '/services',
         svcTemplate)
-      return svc
     },
   }
 }
