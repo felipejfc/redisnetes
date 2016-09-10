@@ -41,7 +41,7 @@ module.exports = {
       // TODO rollback creation of everything
       logger.error(e)
       this.status = e.code || 500
-      this.body = e.message
+      this.body = {error: e.message}
       yield next
     }
   },
