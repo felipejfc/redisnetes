@@ -23,12 +23,13 @@
 const logger = require('winston')
 const redisInstance = require('../models/').RedisInstance
 
-module.exports = function (replicationcontroller, service) {
+module.exports = function (replicationcontroller, service, pod) {
   return {
     * deployInstance(name, redisVersion) {
       const rc = yield replicationcontroller.create(name, redisVersion)
       logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
-      yield replicationcontroller.watch(name)
+      yield replicationcontroller.wait(name)
+      yield pod.wait(name)
       const svc = yield service.create(name)
       logger.debug(`create service result ${JSON.stringify(svc)}`)
       const dbInstance = yield redisInstance.create({

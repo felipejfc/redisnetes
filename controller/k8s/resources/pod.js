@@ -20,40 +20,37 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const K8s = require('k8s')
 const logger = require('winston')
+const constants = require('../../utils/constants')
+const util = require('../../utils/util')
 
-const kubeapi = K8s.api({
-  endpoint: process.env.K8S_API_ADDRESS,
-  namespace: process.env.K8S_NAMESPACE,
-  version: process.env.K8S_API_VERSION,
-  auth: process.env.K8S_API_USEAUTH ? {
-    username: process.env.K8S_API_USERNAME,
-    password: process.env.K8S_API_PASSWORD,
-  } : null,
-})
+module.exports = function (kubeapi) {
+  return {
 
-const replicationcontroller = require('./resources/replicationcontroller')(kubeapi)
-const service = require('./resources/service')(kubeapi)
-const namespace = require('./resources/namespace')(kubeapi)
-const pod = require('./resources/pod')(kubeapi)
-const scheduler = require('./scheduler')(replicationcontroller, service, pod)
+    isPodReady(pod) {
+      const state = pod
+      if (pod.status.phase === 'Running') {
+        return true
+      }
+      return false
+    },
 
-namespace.create(process.env.K8S_NAMESPACE).then(() => {
-  logger.warn(`created namespace ${process.env.K8S_NAMESPACE}`)
-}).catch((e) => {
-  if (e.reason === 'AlreadyExists') {
-    logger.debug(`namespace ${process.env.K8S_NAMESPACE} already exists`)
-  } else {
-    logger.error(`failed to create namespace ${process.env.K8S_NAMESPACE} with error ${e}`)
+    * wait(name) {
+      const instanceName = `redis-${name}`
+      const timeout = constants.POD_READY_TIMEOUT
+      let waited = 0
+      while (waited < timeout) {
+        logger.debug(`waiting for pod ${name}`)
+        waited++
+        const pods = yield kubeapi.get(`namespaces/${process.env.K8S_NAMESPACE}/` +
+          `/pods?labelSelector=redisnetesInstance%3D${instanceName}`)
+        const ready = this.isPodReady(pods.items[0])
+        if (ready) {
+          return
+        }
+        yield util.sleep(1 * 1000)
+      }
+      throw (new Error('timeout waiting for redis pod to become ready'))
+    },
   }
-})
-
-module.exports = {
-  scheduler,
-  api: kubeapi,
-  replicationcontroller,
-  namespace,
-  service,
-  pod,
 }

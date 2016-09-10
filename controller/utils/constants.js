@@ -21,5 +21,6 @@
  */
 
 module.exports = {
-  RC_GENERATION_TIMEOUT: 3,
+  RC_GENERATION_TIMEOUT: 30,
+  POD_READY_TIMEOUT: 60,
 }

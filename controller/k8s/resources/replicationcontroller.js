@@ -73,9 +73,11 @@ module.exports = function (kubeapi) {
         rcTemplate)
     },
 
-    * watch(name) {
+    * wait(name) {
       const timeout = constants.RC_GENERATION_TIMEOUT
-      for (let i = 0; i < timeout; i++) {
+      let waited = 0
+      while (waited < timeout) {
+        waited++
         try {
           const rc = yield kubeapi.get(`namespaces/${process.env.K8S_NAMESPACE}/` +
             `/replicationcontrollers/redis-${name}`)
@@ -91,7 +93,7 @@ module.exports = function (kubeapi) {
           }
         }
       }
-      throw (new Error('timeout waiting for redis replicationcontroller to be ready'))
+      throw (new Error('timeout waiting for redis replicationcontroller to become ready'))
     },
   }
 }
