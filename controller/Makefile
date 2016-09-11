@@ -27,10 +27,16 @@ run:
 start-deps: start-deps-containers db db-migrate
 
 start-deps-containers:
+	@minikube start; true
 	@docker-compose --project-name redisnetes up -d
 	@echo "Sleeping until dependencies are up..."
 	@bash -lc "until docker exec redisnetes_postgres_1 pg_isready; do echo 'Waiting for Postgres...' && sleep 1; done"
 	@sleep 5
+
+stop-deps:
+	@minikube stop; true
+	@docker-compose --project-name redisnetes stop
+	@docker rm redisnetes_postgres_1
 
 db:
 	@echo "Creating new database..."
@@ -39,7 +45,3 @@ db:
 
 db-migrate:
 	@./scripts/migrate_db.sh
-
-stop-deps:
-	@docker-compose --project-name redisnetes stop
-	@docker rm redisnetes_postgres_1
