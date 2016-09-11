@@ -73,6 +73,11 @@ module.exports = function (kubeapi) {
         rcTemplate)
     },
 
+    delete(name) {
+      return kubeapi.delete(`namespaces/${process.env.K8S_NAMESPACE}` +
+        `/replicationcontrollers/redis-${name}`)
+    },
+
     * wait(name) {
       const timeout = constants.RC_GENERATION_TIMEOUT
       let waited = 0

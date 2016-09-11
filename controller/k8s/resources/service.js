@@ -40,7 +40,6 @@ const template = {
     selector: {
       app: '',
     },
-    type: 'NodePort',
   },
 }
 
@@ -57,6 +56,10 @@ module.exports = function (kubeapi) {
       return kubeapi.post(`namespaces/${process.env.K8S_NAMESPACE}` +
         '/services',
         svcTemplate)
+    },
+    delete(name) {
+      return kubeapi.delete(`namespaces/${process.env.K8S_NAMESPACE}` +
+        `/services/redis-${name}`)
     },
   }
 }

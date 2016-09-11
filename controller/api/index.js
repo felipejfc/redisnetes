@@ -25,6 +25,7 @@ const router = require('koa-router')()
 const koaLogger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
 const controllers = require('./controllers')
+const sequelize = require('../models').sequelize
 
 if (process.env.NODE_ENV === 'development') {
   api.use(koaLogger())
@@ -32,6 +33,9 @@ if (process.env.NODE_ENV === 'development') {
 
 api.use(bodyParser())
 api.use(router.routes())
+api.use(require('koa-sequelize-transaction')({
+  sequelize,
+}))
 
 router
   .get('/redis/instances', controllers.RedisController.getInstances)

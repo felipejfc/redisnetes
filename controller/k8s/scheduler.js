@@ -25,22 +25,40 @@ const redisInstance = require('../models/').RedisInstance
 
 module.exports = function (replicationcontroller, service, pod) {
   return {
+
+    * rollback(name) {
+      logger.warn(`rolling back creation of redis intance ${name}`)
+      yield replicationcontroller.delete(name)
+      yield service.delete(name)
+      yield pod.delete(name)
+    },
+
     * deployInstance(name, redisVersion) {
-      const rc = yield replicationcontroller.create(name, redisVersion)
-      logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
-      yield replicationcontroller.wait(name)
-      yield pod.wait(name)
-      const svc = yield service.create(name)
-      logger.debug(`create service result ${JSON.stringify(svc)}`)
-      const dbInstance = yield redisInstance.create({
-        name,
-        redisVersion,
-        replicationControllerManifest: rc,
-        serviceManifest: svc,
-      })
-      logger.debug(`redis instance metadata persisted into db ${JSON.stringify(dbInstance)}`)
-      // TODO detectar erros assincronos na criacao do rc
-      return { rc, svc }
+      try {
+        const rc = yield replicationcontroller.create(name, redisVersion)
+        logger.debug(`create replicationcontroller result ${JSON.stringify(rc)}`)
+        const svc = yield service.create(name)
+        yield replicationcontroller.wait(name)
+        yield pod.wait(name)
+        logger.debug(`create service result ${JSON.stringify(svc)}`)
+        const dbInstance = yield redisInstance.create({
+          name,
+          redisVersion,
+          replicationControllerManifest: rc,
+          serviceManifest: svc,
+        })
+        logger.debug(`redis instance metadata persisted into db ${JSON.stringify(dbInstance)}`)
+        return { rc, svc }
+      } catch (e) {
+        try {
+          if (e.message.indexOf('timeout waiting') > -1) {
+            yield this.rollback(name)
+          }
+        } catch (errRollback) {
+          logger.warn(`error while rolling back instance creation: ${errRollback}`)
+        }
+        throw e
+      }
     },
   }
 }

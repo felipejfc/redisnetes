@@ -28,23 +28,34 @@ module.exports = function (kubeapi) {
   return {
 
     isPodReady(pod) {
-      const state = pod
       if (pod.status.phase === 'Running') {
         return true
       }
       return false
     },
 
+    * delete(name) {
+      const pod = yield this.getPod(name)
+      const podName = pod.metadata.name
+      yield kubeapi.delete(`namespaces/${process.env.K8S_NAMESPACE}/` +
+        `pods/${podName}`)
+    },
+
+    * getPod(instanceName) {
+      const redisInstanceName = `redis-${instanceName}`
+      const pods = yield kubeapi.get(`namespaces/${process.env.K8S_NAMESPACE}` +
+        `/pods?labelSelector=redisnetesInstance%3D${redisInstanceName}`)
+      return pods.items[0]
+    },
+
     * wait(name) {
-      const instanceName = `redis-${name}`
       const timeout = constants.POD_READY_TIMEOUT
       let waited = 0
       while (waited < timeout) {
         logger.debug(`waiting for pod ${name}`)
         waited++
-        const pods = yield kubeapi.get(`namespaces/${process.env.K8S_NAMESPACE}/` +
-          `/pods?labelSelector=redisnetesInstance%3D${instanceName}`)
-        const ready = this.isPodReady(pods.items[0])
+        const pod = yield this.getPod(name)
+        const ready = this.isPodReady(pod)
         if (ready) {
           return
         }
